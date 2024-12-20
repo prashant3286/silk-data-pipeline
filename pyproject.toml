@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "host-data-pipeline"
+version = "0.1.0"
+description = "A comprehensive data pipeline for host discovery and management"
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+requests = "^2.31.0"
+pydantic = "^2.6.4"
+pymongo = "^4.6.1"
+python-dotenv = "^1.0.0"
+matplotlib = "^3.7.2"
+seaborn = "^0.12.2"
+pandas = "^2.0.2"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.4"
+pytest-cov = "^4.1.0"
+flake8 = "^6.1.0"
+mypy = "^1.4.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --cov=src"
+
+[tool.mypy]
+ignore_missing_imports = true
+check_untyped_defs = true
