@@ -8,7 +8,7 @@
 1. Clone this repository.
 2. Install dependencies:
    ```bash
-   pip install -r requirements.txt
+   poetry install
 3. Configure .env with:
 - QUALYS_API_TOKEN
 - CROWDSTRIKE_API_TOKEN
