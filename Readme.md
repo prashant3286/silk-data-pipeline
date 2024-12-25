@@ -9,12 +9,14 @@
 2. Install dependencies:
    ```bash
    poetry install
+   ```
 3. Configure .env with:
 - QUALYS_API_TOKEN
 - CROWDSTRIKE_API_TOKEN
 - MONGO_URI
 4. Run the pipeline:
-    `python main.py`
+    If you are using poetry
+    `poetry run python -m src.main`
 
 5. Visualizations will appear for:
 - Host distribution by OS.
