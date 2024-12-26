@@ -33,11 +33,11 @@
     [Loom video](https://www.loom.com/share/9c97c59ae9e8429fa63c754113bde580?sid=219d370a-94f7-475c-9458-9d4fa12b5563)
 ## Screenshot:
 
-![Application Screenshot](host_data_visualization.png)
-![Application Screenshot](old_vs_new_hosts.png)
-![Application Screenshot](os_distribution.png)
+![host data visualization](host_data_visualization.png)
 
+![old vs bew hosts](old_vs_new_hosts.png)
 
+![os distribution](os_distribution.png)
 
 
 ## To scale a system to support millions of objects, there are several key strategies and principles you should follow. Here is an answer along with an explanation:
