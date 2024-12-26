@@ -1,6 +1,5 @@
 import re
 from typing import Dict, Any
-from ..models.host import Host
 
 class HostNormalizer:
     """

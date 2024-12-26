@@ -7,6 +7,7 @@ from .clients.qualys import QualysClient
 from .clients.crowdstrike import CrowdstrikeClient
 from .services.deduplication import HostDeduplicator
 from .services.normalization import HostNormalizer
+from .models.host import Host 
 
 def setup_logging():
     """
@@ -34,6 +35,8 @@ def connect_to_mongodb():
 def fetch_and_process_hosts():
     """
     Main data pipeline: fetch, normalize, and deduplicate hosts
+    
+    :return: List of deduplicated Host objects
     """
     # Setup logging
     setup_logging()
@@ -47,22 +50,29 @@ def fetch_and_process_hosts():
         # Fetch hosts from both sources
         logger.info("Fetching hosts from Qualys")
         qualys_hosts = qualys_client.get_normalized_hosts()
+        logger.info(f"Fetched {len(qualys_hosts)} hosts from Qualys")
         
         logger.info("Fetching hosts from Crowdstrike")
         crowdstrike_hosts = crowdstrike_client.get_normalized_hosts()
+        logger.info(f"Fetched {len(crowdstrike_hosts)} hosts from Crowdstrike")
         
         # Combine hosts from both sources
         all_hosts = qualys_hosts + crowdstrike_hosts
         
-        # Normalize hosts
-        normalized_hosts = [
-            HostNormalizer.normalize_host_data(host.raw_data) 
-            for host in all_hosts
-        ]
+        
+        # Normalize hosts (if not done within the client already)
+        normalized_hosts = []
+        for host in all_hosts:
+            logger.debug(f"Normalizing host: {host}")
+            normalized_host_data = HostNormalizer.normalize_host_data(host.raw_data)
+            # Filter out unwanted keys
+            allowed_keys = {field.name for field in Host.__dataclass_fields__.values()}
+            filtered_data = {k: v for k, v in normalized_host_data.items() if k in allowed_keys}
+            normalized_hosts.append(Host(**filtered_data))
         
         # Deduplicate hosts
         deduplicator = HostDeduplicator()
-        deduplicated_hosts = deduplicator.deduplicate_hosts(all_hosts)
+        deduplicated_hosts = deduplicator.deduplicate_hosts(normalized_hosts)
         
         # Connect to MongoDB
         db = connect_to_mongodb()
@@ -84,9 +94,12 @@ def fetch_and_process_hosts():
             )
         
         logger.info(f"Processed {len(deduplicated_hosts)} unique hosts")
+        return deduplicated_hosts
     
     except Exception as e:
         logger.error(f"Error in host processing pipeline: {e}")
+        logger.exception(e)
+        return []
 
 if __name__ == "__main__":
-    fetch_and_process_hosts()
+    hosts = fetch_and_process_hosts()

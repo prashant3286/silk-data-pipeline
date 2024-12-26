@@ -1,22 +1,21 @@
 import logging
+import requests
 from typing import Dict, Any, List
 from datetime import datetime
-import requests
-
-from ..models.host import Host
-from ..config.settings import settings
+from src.models.host import Host
+from src.config.settings import settings
 
 class QualysClient:
     """
     Client for interacting with Qualys API to fetch host information
     """
-    def __init__(self, api_token: str = None):
+    def __init__(self):
         self.api_token = settings.QUALYS_API_TOKEN
-        self.base_url = "https://api.recruiting.app.silk.security/api/qualys/hosts/get?skip=0&limit=2"
+        self.base_url = settings.BASE_URL
         self.session = requests.Session()
         self.session.headers.update({
-            'Authorization': f'Bearer {self.api_token}',
-            'Content-Type': 'application/json'
+            'token': self.api_token,
+            'accept': 'application/json'
         })
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -28,24 +27,26 @@ class QualysClient:
         :param limit: Number of records to fetch
         :return: List of raw host data
         """
-        # endpoint = "/api/qualys/hosts/get?skip=0&limit=2"
+        endpoint = "/api/qualys/hosts/get"
+        url = f"{self.base_url}{endpoint}"
+        params = {"skip": skip, "limit": limit}
         
+        self.logger.info(f"Fetching hosts from URL: {url} with params: {params}")
+
         try:
-            response = self.session.post(
-                f"{self.base_url}", 
-                json={
-                    "skip": skip,
-                    "limit": limit
-                },
-                timeout=settings.API_REQUEST_TIMEOUT
-            )
+            response = self.session.post(url, params=params, data='', timeout=settings.API_REQUEST_TIMEOUT)
             response.raise_for_status()
-            
             data = response.json()
-            return data.get('hosts', [])
+            
+            # Assuming the API returns a list directly
+            hosts = data if isinstance(data, list) else []
+            self.logger.debug(f"Fetched hosts: {hosts}")
+            return hosts
         
         except requests.RequestException as e:
             self.logger.error(f"Error fetching Qualys hosts: {e}")
+            if e.response:
+                self.logger.error(f"Response content: {e.response.content}")
             return []
 
     def normalize_host(self, raw_host: Dict[str, Any]) -> Host:
@@ -60,7 +61,7 @@ class QualysClient:
                 source_system='Qualys',
                 source_id=str(raw_host.get('id', '')),
                 hostname=raw_host.get('hostname', ''),
-                ip_addresses=raw_host.get('ip_addresses', []),
+                ip_addresses=[raw_host.get('ip_address', '')],
                 mac_addresses=raw_host.get('mac_addresses', []),
                 operating_system=raw_host.get('os', ''),
                 os_version=raw_host.get('os_version', ''),
@@ -74,7 +75,7 @@ class QualysClient:
                 raw_data=raw_host
             )
         except Exception as e:
-            self.logger.warning(f"Could not normalize host: {e}")
+            self.logger.warning(f"Could not normalize Qualys host: {e}")
             return None
 
     def get_normalized_hosts(self, limit: int = 2) -> List[Host]:

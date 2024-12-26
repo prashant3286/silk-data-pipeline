@@ -1,7 +1,7 @@
 import logging
 from typing import List, Dict, Any
 from difflib import SequenceMatcher
-from ..models.host import Host
+from src.models.host import Host
 
 class HostDeduplicator:
     """

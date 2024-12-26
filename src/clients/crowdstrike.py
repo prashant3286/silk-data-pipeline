@@ -1,22 +1,22 @@
 import logging
+import requests
 from typing import Dict, Any, List
 from datetime import datetime
-import requests
-
-from ..models.host import Host
-from ..config.settings import settings
+from dateutil.parser import parse  
+from src.models.host import Host
+from src.config.settings import settings
 
 class CrowdstrikeClient:
     """
     Client for interacting with Crowdstrike API to fetch host information
     """
-    def __init__(self, api_token: str = None):
-        self.api_token = settings.QUALYS_API_TOKEN
-        self.base_url = "https://api.recruiting.app.silk.security/api/crowdstrike/hosts/get?skip=0&limit=2"
+    def __init__(self):
+        self.api_token = settings.CROWDSTRIKE_API_TOKEN
+        self.base_url = settings.BASE_URL
         self.session = requests.Session()
         self.session.headers.update({
-            'Authorization': f'Bearer {self.api_token}',
-            'Content-Type': 'application/json'
+            'token': self.api_token,
+            'accept': 'application/json'
         })
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -28,24 +28,26 @@ class CrowdstrikeClient:
         :param limit: Number of records to fetch
         :return: List of raw host data
         """
-        # endpoint = "/api/crowdstrike/hosts/get?skip=0&limit=2"
+        endpoint = "/api/crowdstrike/hosts/get"
+        url = f"{self.base_url}{endpoint}"
+        params = {"skip": skip, "limit": limit}
         
+        self.logger.info(f"Fetching hosts from URL: {url} with params: {params}")
+
         try:
-            response = self.session.post(
-                f"{self.base_url}", 
-                json={
-                    "skip": skip,
-                    "limit": limit
-                },
-                timeout=settings.API_REQUEST_TIMEOUT
-            )
+            response = self.session.post(url, json=params, timeout=settings.API_REQUEST_TIMEOUT)
             response.raise_for_status()
-            
             data = response.json()
-            return data.get('hosts', [])
+            
+            # Assuming the API returns a list directly
+            hosts = data if isinstance(data, list) else []
+            self.logger.debug(f"Fetched hosts: {hosts}")
+            return hosts
         
         except requests.RequestException as e:
             self.logger.error(f"Error fetching Crowdstrike hosts: {e}")
+            if e.response:
+                self.logger.error(f"Response content: {e.response.content}")
             return []
 
     def normalize_host(self, raw_host: Dict[str, Any]) -> Host:
@@ -64,12 +66,8 @@ class CrowdstrikeClient:
                 mac_addresses=raw_host.get('mac_addresses', []),
                 operating_system=raw_host.get('platform_name', ''),
                 os_version=raw_host.get('platform_version', ''),
-                first_seen=datetime.fromisoformat(
-                    raw_host.get('first_seen', datetime.now().isoformat())
-                ),
-                last_seen=datetime.fromisoformat(
-                    raw_host.get('last_seen', datetime.now().isoformat())
-                ),
+                first_seen=parse(raw_host.get('first_seen', datetime.now().isoformat())),
+                last_seen=parse(raw_host.get('last_seen', datetime.now().isoformat())),
                 vulnerability_count=raw_host.get('active_vulnerabilities', 0),
                 raw_data=raw_host
             )

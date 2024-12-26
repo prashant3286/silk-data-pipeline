@@ -1,21 +1,20 @@
 import os
+from dotenv import load_dotenv
+
+# Load .env file if present
+load_dotenv()
+
 class Settings:
     """
     Application configuration settings
     """
     QUALYS_API_TOKEN = os.environ.get("QUALYS_API_TOKEN")
     CROWDSTRIKE_API_TOKEN = os.environ.get("CROWDSTRIKE_API_TOKEN")
-    
-    
-    MONGODB_URI: str = "mongodb://localhost:27017"
-    DATABASE_NAME: str = "host_pipeline"
-    
-    API_REQUEST_TIMEOUT: int = 30
-    PAGINATION_LIMIT: int = 2
-    
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    BASE_URL = os.environ.get("BASE_URL")
+    MONGODB_URI= os.environ.get("MONGODB_URI")
+    DATABASE_NAME = os.environ.get("DATABASE_NAME")
+    API_REQUEST_TIMEOUT= int(os.environ.get("API_REQUEST_TIMEOUT"))
+    PAGINATION_LIMIT= int(os.environ.get("PAGINATION_LIMIT"))
 
 # Create a singleton settings instance
 settings = Settings()

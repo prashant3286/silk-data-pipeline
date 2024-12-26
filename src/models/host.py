@@ -42,13 +42,18 @@ class Host:
         """
         # Ensure timestamps are datetime objects
         if isinstance(self.first_seen, str):
-            self.first_seen = datetime.fromisoformat(self.first_seen)
+            self.first_seen = self.parse_datetime(self.first_seen)
         if isinstance(self.last_seen, str):
-            self.last_seen = datetime.fromisoformat(self.last_seen)
+            self.last_seen = self.parse_datetime(self.last_seen)
         
         # Deduplicate lists
         self.ip_addresses = list(set(filter(None, self.ip_addresses)))
         self.mac_addresses = list(set(filter(None, self.mac_addresses)))
+
+    @staticmethod
+    def parse_datetime(date_str: str) -> datetime:
+        from dateutil.parser import parse
+        return parse(date_str)
 
     def merge(self, other: 'Host') -> 'Host':
         """
