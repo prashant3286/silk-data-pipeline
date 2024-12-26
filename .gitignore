@@ -20,8 +20,6 @@ env/
 # Logs
 *.log
 
-# Visualization outputs
-*.png
 
 # Sensitive Information
 .env
