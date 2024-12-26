@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 import seaborn as sns
 from typing import List
 from src.models.host import Host
+from src.main import fetch_and_process_hosts
+
 
 class HostDataVisualizer:
     @staticmethod
@@ -64,7 +66,6 @@ class HostDataVisualizer:
 
 # Example usage
 if __name__ == "__main__":
-    from src.main import fetch_and_process_hosts
     
     # Fetch hosts
     hosts = fetch_and_process_hosts()

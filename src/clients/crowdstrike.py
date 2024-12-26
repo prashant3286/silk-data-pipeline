@@ -11,7 +11,7 @@ class CrowdstrikeClient:
     Client for interacting with Crowdstrike API to fetch host information
     """
     def __init__(self, api_token: str = None):
-        self.api_token = "armis-login@armis.com_60974105-5053-4267-b16e-392e8165c89a"
+        self.api_token = settings.QUALYS_API_TOKEN
         self.base_url = "https://api.recruiting.app.silk.security/api/crowdstrike/hosts/get?skip=0&limit=2"
         self.session = requests.Session()
         self.session.headers.update({
